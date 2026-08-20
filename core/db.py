@@ -51,6 +51,18 @@ def init_db():
         )
     """)
 
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS user_settings (
+            user_id INTEGER PRIMARY KEY,
+            last_salary_input TEXT,
+            last_change_month INTEGER,
+            last_old_salary REAL,
+            last_new_salary REAL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -183,3 +195,52 @@ def _compress_periods(salary_by_month: Dict[int, float]) -> List[Tuple[int, int,
             prev_salary = salary
 
     return periods
+
+
+def update_user_last_salary(user_id: int, last_salary_input: str, last_change_month: int = None,
+                            last_old_salary: float = None, last_new_salary: float = None):
+    """
+    Сохраняем последние введённые пользователем данные о зарплате.
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        INSERT OR REPLACE INTO user_settings (user_id, last_salary_input, last_change_month, last_old_salary, last_new_salary, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (user_id, last_salary_input, last_change_month, last_old_salary, last_new_salary, datetime.now().isoformat()),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def get_user_last_salary(user_id: int) -> Dict:
+    """
+    Получаем последние введённые пользователем данные о зарплате.
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT last_salary_input, last_change_month, last_old_salary, last_new_salary
+        FROM user_settings
+        WHERE user_id = ?
+        """,
+        (user_id,),
+    )
+
+    row = cur.fetchone()
+    conn.close()
+
+    if row:
+        return {
+            "last_salary_input": row[0],
+            "last_change_month": row[1],
+            "last_old_salary": row[2],
+            "last_new_salary": row[3],
+        }
+    return None

@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional
 
+
 WORK_DAYS_2026 = {
     1: 15,
     2: 19,
@@ -28,21 +29,6 @@ WORK_DAYS_UPTO_15_2026 = {
     10: 11,
     11: 9,
     12: 11,
-}
-
-MONTH_NAMES = {
-    1: "Январь",
-    2: "Февраль",
-    3: "Март",
-    4: "Апрель",
-    5: "Май",
-    6: "Июнь",
-    7: "Июль",
-    8: "Август",
-    9: "Сентябрь",
-    10: "Октябрь",
-    11: "Ноябрь",
-    12: "Декабрь",
 }
 
 
@@ -144,7 +130,7 @@ def calc_advance_for_month(month: int, monthly_gross: float, cumulative_before_m
 
     return {
         "month": month,
-        "month_name": MONTH_NAMES[month],
+        "month_name": "",
         "advance_net": advance_net,
         "remainder_net": remainder_net,
         "advance_gross": advance_gross,
@@ -158,13 +144,17 @@ def calc_advance_for_month(month: int, monthly_gross: float, cumulative_before_m
 
 
 def calculate_results(months_to_show: List[int], salary_by_month: Dict[int, float]):
+    from bot.keyboards import MONTH_NAMES
+
     cumulative_before = 0.0
     results = {}
 
     for m in range(1, 13):
         salary = salary_by_month[m]
         res = calc_advance_for_month(m, salary, cumulative_before)
+        res["month_name"] = MONTH_NAMES[m - 1]
         results[m] = res
-        cumulative_before = res["cumulative_after_month"]
+        # Правильно: добавляем всю зарплату за этот месяц
+        cumulative_before += salary  # а не salary * (m - 1)
 
     return results
