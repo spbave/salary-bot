@@ -1,0 +1,10 @@
+[tool.ruff]
+output-format = "pylint"
+exclude = ["autotests/pygrpc/proto"]
+[tool.ruff.lint]
+select = [
+    "UP032",  # f-string-without-interpolation
+    "F401",   # unused-import
+    "F841",   # unused-variable
+    "E402",   # module-level-import-not-at-top
+]
